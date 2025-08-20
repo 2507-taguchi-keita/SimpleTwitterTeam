@@ -35,24 +35,12 @@ public class UserMessageDao {
 			if(userId != null) {
 				sql.append("AND user_id = ? ");
 			}
+
 			if (!StringUtils.isBlank(searchWord)) {
 				sql.append(" AND messages.text like ? ");
-			}
-
-//            if(userId != null) {
-//            	ps.setInt(3, userId);
-//
-//            	if (!StringUtils.isBlank(searchWord)) {
-//    				ps.setString(4, "%" + searchWord + "%");
-//    			}
-//            } else {
-//    			if (!StringUtils.isBlank(searchWord)) {
-//    				ps.setString(3, "%" + searchWord + "%");
-//    			}
-//    		}
+	 		}
 
 			sql.append("ORDER BY created_date DESC limit " + num);
-
 			ps = connection.prepareStatement(sql.toString());
 			ps.setString(1, start);
 			ps.setString(2, end);
@@ -61,24 +49,31 @@ public class UserMessageDao {
 				ps.setInt(3, userId);
 
 				if (!StringUtils.isBlank(searchWord)) {
-					ps.setString(4, searchWord + "%");
+					if (likeSearch.equals("startFrom")) {
+						ps.setString(4, searchWord + "%");
+					} else {
+						ps.setString(4, "%" + searchWord + "%");
+					}
 				}
 			} else {
 				if (!StringUtils.isBlank(searchWord)) {
-					ps.setString(3, searchWord + "%");
+					if (likeSearch.equals("startFrom")) {
+						ps.setString(3, searchWord + "%");
+					} else {
+						ps.setString(3, "%" + searchWord + "%");
+					}
 				}
 			}
 
-            ResultSet rs = ps.executeQuery();
-
-            List<UserMessage> messages = toUserMessages(rs);
-            return messages;
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        } finally {
-            close(ps);
-        }
-    }
+			ResultSet rs = ps.executeQuery();
+			List<UserMessage> messages = toUserMessages(rs);
+			return messages;
+		} catch (SQLException e) {
+			throw new SQLRuntimeException(e);
+		} finally {
+			close(ps);
+		}
+	}
 
     private List<UserMessage> toUserMessages(ResultSet rs) throws SQLException {
 
